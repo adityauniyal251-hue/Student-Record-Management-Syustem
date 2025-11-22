@@ -1,1 +1,70 @@
 src/
+
+
+#include <stdio.h>
+#include <string.h>
+
+struct Student {
+    int id;
+    char name[50];
+    float marks;
+};
+
+struct Student s[100];
+int count = 0;
+
+void addStudent() {
+    printf("\nEnter Student ID: ");
+    scanf("%d", &s[count].id);
+    printf("Enter Student Name: ");
+    scanf("%s", s[count].name);
+    printf("Enter Student Marks: ");
+    scanf("%f", &s[count].marks);
+
+    count++;
+    printf("\nStudent Added Successfully!\n");
+}
+
+void displayStudents() {
+    if(count == 0) {
+        printf("\nNo Records Found!\n");
+        return;
+    }
+
+    printf("\n--- Student Records ---\n");
+    for(int i = 0; i < count; i++) {
+        printf("\nID: %d", s[i].id);
+        printf("\nName: %s", s[i].name);
+        printf("\nMarks: %.2f\n", s[i].marks);
+    }
+}
+
+void searchStudent() {
+    int id, flag = 0;
+    printf("\nEnter Student ID to Search: ");
+    scanf("%d", &id);
+
+    for(int i = 0; i < count; i++) {
+        if(s[i].id == id) {
+            printf("\nRecord Found:\n");
+            printf("ID: %d\n", s[i].id);
+            printf("Name: %s\n", s[i].name);
+            printf("Marks: %.2f\n", s[i].marks);
+            flag = 1;
+            break;
+        }
+    }
+
+    if(flag == 0)
+        printf("\nRecord Not Found!\n");
+}
+
+void deleteStudent() {
+    int id, flag = 0;
+    printf("\nEnter Student ID to Delete: ");
+    scanf("%d", &id);
+
+    for(int i = 0; i < count; i++) {
+        if(s[i].id == id) {
+            for(int j = i; j < count - 1; j++)
+                s[j]
