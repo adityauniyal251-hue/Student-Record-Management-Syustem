@@ -15,7 +15,5 @@ The system is designed to demonstrate basic file handling, data structures (stru
 - `src/` contains the C source code files (`student_management.c`)
 - `include/` contains the header files (`student_management.h`)
 - `docs/` contains the project report and documentation
-- `assets/` (optional) contains screenshots and diagrams
-- `sample_input.txt` (optional) contains example input data
 
 This project follows the guidelines for the C Programming Major Project and adheres to best practices for modular and maintainable code.
