@@ -1,1 +1,252 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
+#define DATA_FILE "students.dat"
+#define MAX_NAME 64
+#define MAX_DEPT 48
+
+typedef struct {
+    int id;
+    char name[MAX_NAME];
+    int age;
+    char dept[MAX_DEPT];
+    float gpa;
+    char gender;
+} Student;
+
+void read_line(char *buf, int size) {
+    if (!fgets(buf, size, stdin)) {
+        buf[0] = '\0';
+        return;
+    }
+    size_t len = strlen(buf);
+    if (len && buf[len-1] == '\n') buf[len-1] = '\0';
+}
+
+int next_id() {
+    FILE *fp = fopen(DATA_FILE, "rb");
+    if (!fp) return 1;
+    Student st;
+    int max = 0;
+    while (fread(&st, sizeof(Student), 1, fp) == 1) {
+        if (st.id > max) max = st.id;
+    }
+    fclose(fp);
+    return max + 1;
+}
+
+void print_student(const Student *s) {
+    printf("ID: %d | Name: %s | Age: %d | Dept: %s | GPA: %.2f | Gender: %c\n",
+           s->id, s->name, s->age, s->dept, s->gpa, s->gender);
+}
+
+void add_student() {
+    Student st;
+    st.id = next_id();
+    printf("Name: ");
+    read_line(st.name, MAX_NAME);
+
+    char buf[32];
+    printf("Age: ");
+    read_line(buf, sizeof(buf));
+    st.age = atoi(buf);
+
+    printf("Department: ");
+    read_line(st.dept, MAX_DEPT);
+
+    printf("GPA: ");
+    read_line(buf, sizeof(buf));
+    st.gpa = atof(buf);
+
+    printf("Gender (M/F/O): ");
+    read_line(buf, sizeof(buf));
+    st.gender = toupper(buf[0]);
+
+    FILE *fp = fopen(DATA_FILE, "ab");
+    fwrite(&st, sizeof(Student), 1, fp);
+    fclose(fp);
+
+    printf("Student added.\n");
+}
+
+void display_all() {
+    FILE *fp = fopen(DATA_FILE, "rb");
+    if (!fp) {
+        printf("No records.\n");
+        return;
+    }
+    Student st;
+    while (fread(&st, sizeof(Student), 1, fp) == 1) {
+        print_student(&st);
+    }
+    fclose(fp);
+}
+
+void search_by_id() {
+    char buf[32];
+    printf("Enter ID: ");
+    read_line(buf, sizeof(buf));
+    int id = atoi(buf);
+
+    FILE *fp = fopen(DATA_FILE, "rb");
+    if (!fp) {
+        printf("No records.\n");
+        return;
+    }
+    Student st;
+    while (fread(&st, sizeof(Student), 1, fp) == 1) {
+        if (st.id == id) {
+            print_student(&st);
+            fclose(fp);
+            return;
+        }
+    }
+    fclose(fp);
+    printf("Not found.\n");
+}
+
+void search_by_name() {
+    char key[MAX_NAME];
+    printf("Enter name: ");
+    read_line(key, MAX_NAME);
+
+    FILE *fp = fopen(DATA_FILE, "rb");
+    if (!fp) {
+        printf("No records.\n");
+        return;
+    }
+
+    Student st;
+    int found = 0;
+    while (fread(&st, sizeof(Student), 1, fp) == 1) {
+        if (strstr(st.name, key)) {
+            print_student(&st);
+            found = 1;
+        }
+    }
+    fclose(fp);
+
+    if (!found) printf("No match.\n");
+}
+
+void modify_student() {
+    char buf[32];
+    printf("Enter ID to modify: ");
+    read_line(buf, sizeof(buf));
+    int id = atoi(buf);
+
+    FILE *fp = fopen(DATA_FILE, "rb");
+    if (!fp) {
+        printf("No records.\n");
+        return;
+    }
+    FILE *tmp = fopen("temp.dat", "wb");
+
+    Student st;
+    int found = 0;
+
+    while (fread(&st, sizeof(Student), 1, fp) == 1) {
+        if (st.id == id) {
+            found = 1;
+            printf("New name: ");
+            read_line(st.name, MAX_NAME);
+
+            printf("New age: ");
+            read_line(buf, sizeof(buf));
+            st.age = atoi(buf);
+
+            printf("New dept: ");
+            read_line(st.dept, MAX_DEPT);
+
+            printf("New GPA: ");
+            read_line(buf, sizeof(buf));
+            st.gpa = atof(buf);
+
+            printf("New gender: ");
+            read_line(buf, sizeof(buf));
+            st.gender = toupper(buf[0]);
+        }
+        fwrite(&st, sizeof(Student), 1, tmp);
+    }
+    fclose(fp);
+    fclose(tmp);
+
+    if (found) {
+        remove(DATA_FILE);
+        rename("temp.dat", DATA_FILE);
+        printf("Updated.\n");
+    } else {
+        remove("temp.dat");
+        printf("ID not found.\n");
+    }
+}
+
+void delete_student() {
+    char buf[32];
+    printf("Enter ID to delete: ");
+    read_line(buf, sizeof(buf));
+    int id = atoi(buf);
+
+    FILE *fp = fopen(DATA_FILE, "rb");
+    if (!fp) {
+        printf("No records.\n");
+        return;
+    }
+    FILE *tmp = fopen("temp.dat", "wb");
+
+    Student st;
+    int found = 0;
+
+    while (fread(&st, sizeof(Student), 1, fp) == 1) {
+        if (st.id == id) {
+            found = 1;
+            continue;
+        }
+        fwrite(&st, sizeof(Student), 1, tmp);
+    }
+    fclose(fp);
+    fclose(tmp);
+
+    if (found) {
+        remove(DATA_FILE);
+        rename("temp.dat", DATA_FILE);
+        printf("Deleted.\n");
+    } else {
+        remove("temp.dat");
+        printf("ID not found.\n");
+    }
+}
+
+void show_menu() {
+    printf("\n1. Add Student\n");
+    printf("2. Display All\n");
+    printf("3. Search by ID\n");
+    printf("4. Search by Name\n");
+    printf("5. Modify Student\n");
+    printf("6. Delete Student\n");
+    printf("0. Exit\n");
+    printf("Enter choice: ");
+}
+
+int main() {
+    while (1) {
+        show_menu();
+        char buf[8];
+        read_line(buf, sizeof(buf));
+        int ch = atoi(buf);
+
+        switch (ch) {
+            case 1: add_student(); break;
+            case 2: display_all(); break;
+            case 3: search_by_id(); break;
+            case 4: search_by_name(); break;
+            case 5: modify_student(); break;
+            case 6: delete_student(); break;
+            case 0: exit(0);
+            default: printf("Invalid.\n");
+        }
+    }
+    return 0;
+}
