@@ -1,2 +1,0 @@
-# Student-Record-Management-Syustem
- Student Record Management System in C using structures, dynamic memory, file handling; supports add, update, delete, search, display; modular design integrating all six course units.
